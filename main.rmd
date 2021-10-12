@@ -1,0 +1,58 @@
+---
+title: "main"
+output: html_document
+date: "Last Updated: `r format(Sys.time(), '%b %d, %Y')` " 
+---
+
+```{r Dependency Imports, eval=TRUE, echo=FALSE, message=FALSE, include=FALSE}
+library("here")
+library("readr")
+library(ggplot2)
+
+```
+
+```{r Question 1) a.}
+# Store path to 'data' folder in a list named 'data_paths'
+data_paths <- list.files(path = here("data"), full.names = TRUE)
+
+# Character vector to be used as column vectors
+nasa_temp_col_names <- c("date", "temp", "dummy")  # 'dummy' will be dropped
+
+# Column specification list
+nasa_temp_col_types <- list("date" = col_date(format = "%Y"),
+                            "temp" = col_double(),
+                            "dummy" = col_skip())   # drop 'dummy'
+
+# Store data in 'nasa_temp' tibble
+nasa_temp <- read_table(file = data_paths[4],   # 4th element in list
+                        col_names = nasa_temp_col_names,
+                        col_types = nasa_temp_col_types,
+                        skip = 5)   # skip first 5 rows as they contain no data
+
+ggplot(data=nasa_temp, aes(x=date, y=temp)) +
+  geom_line(color="blue")+
+  geom_point(color="blue")+
+  labs(title="Plot of Land-Ocean Temperature by Year",
+       x="Date",
+       y="Temperature (deg Celsius)")
+
+```
+
+```{r Question 1) b., include=FALSE, echo=FALSE, message=FALSE, eval=TRUE}
+
+nasa_ice_col_names = c("year", "month", "data-type", "region", "extent", "area")
+
+nasa_ice_col_types = list("year" = col_date(format = "%Y"),
+                          "month" = col_skip(),
+                          "data-type" = col_skip(),
+                          "region" = col_skip(),
+                          "extent" = col_double(),
+                          "area" = col_skip())
+
+nasa_ice <- read_delim(file=data_paths[2],
+                     del = ";",
+                     col_names = nasa_ice_col_names,
+                     col_types = nasa_ice_col_types)
+
+```
+

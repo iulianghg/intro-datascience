@@ -10,6 +10,7 @@ library("here")
 library("readr")
 library("ggplot2")
 library("lubridate")
+library("scales")
 ```
 
 ```{r Question 1) a.}
@@ -110,7 +111,7 @@ ggplot(data=nasa_co2, aes(x=date, y=co2))+
        y=expression("Average global CO"[2]*" level in parts per million (ppm)"))
 ```
 
-```{r Question 1) e., message=FALSE}
+```{r Question 1) e., message=FALSE, include=FALSE}
 nasa <- left_join(nasa_temp, nasa_ice) %>% 
   full_join(nasa_sea) %>% 
   full_join(nasa_co2)
@@ -128,26 +129,20 @@ ggplot(data=nasa %>% filter(date >= as.Date("1960-01-01") & date < as_date("2021
 ```
 
 ``` {r Question 2) a.}
-
 historic_co2_col_types = list(
   "yrbp" = col_double(),
   "co2" = col_double())
-
 historic_co2_col_names = c("yrbp", "co2")
-
 historic_co2 <- read_table(file=data_paths[1],
                            skip=774,
                            col_names = historic_co2_col_names,
                            col_types = historic_co2_col_types) 
-
 ```
 
-```{r Question 2) b., message=FALSE}
-
+```{r Question 2) b., message=FALSE, include=FALSE}
 historic_co2 %>% mutate(yrbp = yrbp + 13) # change ref. year to 2021 (i.e. add 13)
 nasa_co2 <- nasa_co2 %>%
   add_column(yrbp = 2021 - as.double(format(nasa_co2$date, format="%Y")))
-
 combined_co2 <- full_join(nasa_co2, historic_co2) %>%
   select(!date) %>% 
   arrange(., yrbp) %>% 
@@ -157,11 +152,16 @@ combined_co2 <- full_join(nasa_co2, historic_co2) %>%
 ``` {r Question 3) c.}
 options(scipen = 5)
 
+avg <- filter(combined_co2, yrbp == 0) %>% 
+  colMeans(co2) %>% 
+  unname()
+
+
 ggplot(data=combined_co2,
        aes(x=yrbp, y=co2))+
   geom_line(color="black",
             size = 0.9)+
-  scale_x_reverse()+
+  scale_x_reverse(labels = comma)+
   labs(x="Years before present",
        y="Carbon dioxite [ppm]")+
   theme_classic()+
@@ -169,16 +169,17 @@ ggplot(data=combined_co2,
     aes(x=70000, y=395,
         xend = 0, yend = 415.52),
     arrow = arrow(length = unit(0.03, "npc"),
-                  type="closed"),
+                  type="open"),
     colour = "#EC7014",
-    size = 0.7,
+    size = 0.9,
     angle = 90,
     curvature = -0.3)+
   geom_text(aes(x = 150000, y = 390,
-                label = expression("2021 average:"[combined_co2[1,1]]*" ppm"),
+                label = sprintf("2021 average:\n %g ppm", avg[2]),
                 color="#EC7014"))+
-  theme(legend.position = "none")
-
+  theme(legend.position = "none",
+        axis.title = element_text(size = 17),
+        axis.text = element_text(size = 12))
 ```
 
 ``` {r}

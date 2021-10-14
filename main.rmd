@@ -5,69 +5,56 @@ date: "Last Updated: `r format(Sys.time(), '%b %d, %Y')` "
 ---
 
 ```{r Dependency Imports, eval=TRUE, echo=FALSE, message=FALSE, include=FALSE}
-
 library("tidyverse")
 library("here")
 library("readr")
 library("ggplot2")
 library("lubridate")
-
 ```
 
 ```{r Question 1) a.}
 # Store path to 'data' folder in a list named 'data_paths'
 data_paths <- list.files(path = here("data"), full.names = TRUE)
-
 # Character vector to be used as column vectors
 nasa_temp_col_names <- c("date", "temp", "dummy")  # 'dummy' will be dropped
-
 # Column specification list
 nasa_temp_col_types <- list("date" = col_date(format = "%Y"),
                             "temp" = col_double(),
                             "dummy" = col_skip())   # drop 'dummy'
-
 # Store data in 'nasa_temp' tibble
 nasa_temp <- read_table(file = data_paths[4],   # 4th element in list
                         col_names = nasa_temp_col_names,
                         col_types = nasa_temp_col_types,
                         skip = 5)   # skip first 5 rows as they contain no data
-
 ggplot(data=nasa_temp, aes(x=date, y=temp)) +
   geom_line(color="blue")+
   geom_point(color="blue")+
   labs(title="Global Yearly Land-Ocean Temperature",
        x="Date",
        y="Temperature (\u00B0C)")
-
 ```
 
 ```{r Question 1) b., message=FALSE}
-
 nasa_ice_col_types = list("date" = col_date(format = "%Y"),
                           "X2" = col_skip(),
                           "X3" = col_skip(),
                           "X4" = col_skip(),
                           "ice" = col_double(),
                           "X6" = col_skip())
-
 nasa_ice_col_names = c("date", "X2", "X3", "X4", "ice", "X6")
-
 nasa_ice <- read_csv2(file=data_paths[2],
                      col_names = nasa_ice_col_names,
                      col_types = nasa_ice_col_types,
                      skip = 1)
-
 ggplot(data=nasa_ice, aes(x=date, y=ice)) +
   geom_line(color="blue")+
   geom_point(color="blue")+
   labs(title="Arctic Sea Ice Minimum",
        x="Year",
        y="Minimum arctic sea ice extent in million square km")
-
 ```
 
 ``` {r Question 1) c.}
-
 nasa_sea_col_types = list(
   "X1" = col_skip(),
   "X2" = col_skip(),
@@ -82,26 +69,21 @@ nasa_sea_col_types = list(
   "X11" = col_skip(),
   "sea" = col_double()
 )
-
 nasa_sea_col_names = c("X1", "X2", "date", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "sea")
-
 nasa_sea <- read_table(file=data_paths[5],
                      col_names = nasa_sea_col_names,
                      col_types = nasa_sea_col_types,
                      skip = 48) %>% 
   mutate(date = date_decimal(date, tz = "UTC")) %>% 
   mutate(date = as_date(date))
-
 ggplot(data=nasa_sea, aes(x=date, y=sea))+
   geom_line(color="blue")+
-  labs(title="Sea level change",
+  labs(title="Sea level variation",
        x="Year",
        y="Sea level variance compared to reference year 2005 (mm)")
-
 ```
 
 ``` {r Question 1) d.}
-
 nasa_co2_col_types = list(
   "X1" = col_skip(),
   "X2" = col_skip(),
@@ -111,7 +93,6 @@ nasa_co2_col_types = list(
   "X6" = col_skip(),
   "X7" = col_skip(),
   "X8" = col_skip())
-
 nasa_co2_col_names = c("X1", "X2", "date", "co2", "X5", "X6", "X7", "X8")
   
 nasa_co2 <- read_table(file=data_paths[3],
@@ -122,25 +103,21 @@ nasa_co2 <- read_table(file=data_paths[3],
   mutate(date = as_date(date)) %>%    # Set 'date' type as date instead of datetime
   mutate(date = floor_date(date, unit="month")) %>% # Round down to nearest unit
   filter(co2 > 0)
-
 ggplot(data=nasa_co2, aes(x=date, y=co2))+
   geom_line(color="blue")+
   labs(title=expression("CO"[2]*" levels over time"),
        x="Year",
        y=expression("Average global CO"[2]*" level in parts per million (ppm)"))
-
 ```
 
-``` {r Question 1) e.}
+```{r Question 1) e., message=FALSE}
 nasa <- left_join(nasa_temp, nasa_ice) %>% 
   full_join(nasa_sea) %>% 
   full_join(nasa_co2)
-
 ```
 
-``` {r Question 1) f.}
-
-ggplot(data=nasa %>% filter(date >= as.Date("1960-01-01") & date < as.Date("2021-01-01")),
+```{r Question 1) f., warning=FALSE}
+ggplot(data=nasa %>% filter(date >= as.Date("1960-01-01") & date < as_date("2021-01-01")),
        aes(x=temp, y=co2))+
   geom_point(aes(color=year(date)))+
   scale_color_gradient(low="blue", high="red")+
@@ -148,6 +125,62 @@ ggplot(data=nasa %>% filter(date >= as.Date("1960-01-01") & date < as.Date("2021
        x="Temperature (\u00B0C)",
        y=expression("Average global CO"[2]*" level in parts per million (ppm)"),
        color="Year")
+```
 
+``` {r Question 2) a.}
 
+historic_co2_col_types = list(
+  "yrbp" = col_double(),
+  "co2" = col_double())
+
+historic_co2_col_names = c("yrbp", "co2")
+
+historic_co2 <- read_table(file=data_paths[1],
+                           skip=774,
+                           col_names = historic_co2_col_names,
+                           col_types = historic_co2_col_types) 
+
+```
+
+```{r Question 2) b., message=FALSE}
+
+historic_co2 %>% mutate(yrbp = yrbp + 13) # change ref. year to 2021 (i.e. add 13)
+nasa_co2 <- nasa_co2 %>%
+  add_column(yrbp = 2021 - as.double(format(nasa_co2$date, format="%Y")))
+
+combined_co2 <- full_join(nasa_co2, historic_co2) %>%
+  select(!date) %>% 
+  arrange(., yrbp) %>% 
+  relocate(2)
+```
+
+``` {r Question 3) c.}
+options(scipen = 5)
+
+ggplot(data=combined_co2,
+       aes(x=yrbp, y=co2))+
+  geom_line(color="black",
+            size = 0.9)+
+  scale_x_reverse()+
+  labs(x="Years before present",
+       y="Carbon dioxite [ppm]")+
+  theme_classic()+
+  geom_curve(
+    aes(x=70000, y=395,
+        xend = 0, yend = 415.52),
+    arrow = arrow(length = unit(0.03, "npc"),
+                  type="closed"),
+    colour = "#EC7014",
+    size = 0.7,
+    angle = 90,
+    curvature = -0.3)+
+  geom_text(aes(x = 150000, y = 390,
+                label = expression("2021 average:"[combined_co2[1,1]]*" ppm"),
+                color="#EC7014"))+
+  theme(legend.position = "none")
+
+```
+
+``` {r}
+glimpse(nasa_co2)
 ```

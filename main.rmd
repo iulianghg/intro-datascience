@@ -11,6 +11,7 @@ library("readr")
 library("ggplot2")
 library("lubridate")
 library("scales")
+library("readxl")
 ```
 
 ```{r Question 1) a.}
@@ -182,6 +183,68 @@ ggplot(data=combined_co2,
         axis.text = element_text(size = 12))
 ```
 
-``` {r}
-glimpse(nasa_co2)
+``` {r Question 3) a., include=FALSE}
+
+sea_ice_1 <- read_excel(path=data_paths[6],
+                        sheet=1) %>% 
+  fill(1) %>% 
+  gather(key="year", value="extent", 3:46) %>% 
+  select(-(3:5)) %>% 
+  gather(key="key", value="month", 1) %>% 
+  select(-4) %>% 
+  gather(key="day", value="day", 1) %>% 
+  select(-4) %>% 
+  mutate(month = recode(month,
+                        January = 1,
+                        February = 2,
+                        March = 3,
+                        April = 4,
+                        May = 5,
+                        June = 6,
+                        July = 7,
+                        August = 8,
+                        September = 9,
+                        October = 10,
+                        November = 11,
+                        December = 12)) %>% 
+  relocate(extent) %>% 
+  arrange(month, day) %>% 
+  mutate(year = as.integer(year)) %>% 
+  mutate(month = as.integer(month)) %>% 
+  mutate(day = as.integer(day))
+
+```
+
+``` {r Question 3) b., include=FALSE}
+
+mn_79 <- select(sea_ice_1, 1:3) %>%
+  filter(year == 1979) %>% 
+  group_by(year, month) %>% 
+  summarise(mean = (mean(extent, na.rm=TRUE) / 12))
+
+sea_ice_2 <- select(sea_ice_1, 1:3) %>% 
+  group_by(year, month) %>% 
+  summarise(proportion_baseline_extent = ((mean(extent, na.rm=TRUE) / 12)) / mn_79$mean[month]) %>% 
+  arrange(month)
+
+```
+
+``` {r Question 3) c.}
+
+sea_ice_2 %>% filter(year > 1979 & year < 2021) %>% 
+  ggplot()+
+  geom_tile(aes(x=year, y=month.name[month], fill = proportion_baseline_extent))+
+  scale_fill_distiller(palette="RdPu", name = "Proportion of 1979 extent")+
+  scale_y_discrete(limits = month.name, expand = expansion(mult =c(0, 0.1)))+
+  scale_x_continuous(expand = c(0, 0))+
+  labs(title="Sea ice northern hemisphere",
+       x="Year",
+       y="Month")+
+  theme_classic()+
+  theme(axis.title = element_text(size = 13),
+        plot.title = element_text(size = 20,
+                                  hjust = 0.5),
+        axis.line = element_line(size = 1),
+        axis.ticks = element_line(size = 1))
+
 ```

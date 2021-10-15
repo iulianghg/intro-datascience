@@ -152,12 +152,9 @@ combined_co2 <- full_join(nasa_co2, historic_co2) %>%
 
 ``` {r Question 3) c.}
 options(scipen = 5)
-
 avg <- filter(combined_co2, yrbp == 0) %>% 
   colMeans(co2) %>% 
   unname()
-
-
 ggplot(data=combined_co2,
        aes(x=yrbp, y=co2))+
   geom_line(color="black",
@@ -168,7 +165,7 @@ ggplot(data=combined_co2,
   theme_classic()+
   geom_curve(
     aes(x=70000, y=395,
-        xend = 0, yend = 415.52),
+        xend = 3000, yend = 415.52),
     arrow = arrow(length = unit(0.03, "npc"),
                   type="open"),
     colour = "#EC7014",
@@ -184,7 +181,6 @@ ggplot(data=combined_co2,
 ```
 
 ``` {r Question 3) a., include=FALSE}
-
 sea_ice_1 <- read_excel(path=data_paths[6],
                         sheet=1) %>% 
   fill(1) %>% 
@@ -212,25 +208,20 @@ sea_ice_1 <- read_excel(path=data_paths[6],
   mutate(year = as.integer(year)) %>% 
   mutate(month = as.integer(month)) %>% 
   mutate(day = as.integer(day))
-
 ```
 
 ``` {r Question 3) b., include=FALSE}
-
 mn_79 <- select(sea_ice_1, 1:3) %>%
   filter(year == 1979) %>% 
   group_by(year, month) %>% 
   summarise(mean = (mean(extent, na.rm=TRUE) / 12))
-
 sea_ice_2 <- select(sea_ice_1, 1:3) %>% 
   group_by(year, month) %>% 
   summarise(proportion_baseline_extent = ((mean(extent, na.rm=TRUE) / 12)) / mn_79$mean[month]) %>% 
   arrange(month)
-
 ```
 
 ``` {r Question 3) c.}
-
 sea_ice_2 %>% filter(year > 1979 & year < 2021) %>% 
   ggplot()+
   geom_tile(aes(x=year, y=month.name[month], fill = proportion_baseline_extent))+
@@ -246,5 +237,54 @@ sea_ice_2 %>% filter(year > 1979 & year < 2021) %>%
                                   hjust = 0.5),
         axis.line = element_line(size = 1),
         axis.ticks = element_line(size = 1))
+```
+``` {r delete this when done}
+
+this_path <- list.files(path = here("data_cleaned"), full.names = TRUE)
+
+compare <- read_csv(file=this_path[10])
+
+```
+
+
+
+``` {r Question 4) a.}
+
+stop_search_col_types = list(
+  "X1" = col_skip(),
+  "year" = col_character(),
+  "X3" = col_skip(),
+  "ethnicity" = col_character(),
+  "X5" = col_skip(),
+  "legislation_type" = col_character(),
+  "geography" = col_character(),
+  "X8" = col_skip(),
+  "stops" = col_double(),
+  "X10" = col_skip(),
+  "population" = col_double(),
+  "rate" = col_double(),
+  "X13" = col_skip(),
+  "X14" = col_skip()
+)
+
+stop_search_col_names = c("X1", "year", "X3", "ethnicity", "X5",
+                          "legislation_type", "geography", "X8",
+                          "stops", "X10", "population","rate",
+                          "X13", "X14")
+stop_search <- read_csv(file=data_paths[7])
+stop_search_1 <- read_csv(file=data_paths[7],
+                        col_types=stop_search_col_types,
+                        col_names=stop_search_col_names,
+                        skip=1) %>% 
+  filter(ethnicity == "All" | ethnicity == "Asian" | ethnicity == "Black" | ethnicity == "White" | ethnicity == "Other")
+
+
+
+stop_search_2 <- stop_search_1 %>%
+  mutate(rate_white = filter(ethnicity == "White")) %>% 
+  mutate(relative_disparity = rate / rate_white$rate[ethnicity]) 
+
+
+
 
 ```

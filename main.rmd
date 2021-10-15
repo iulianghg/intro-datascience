@@ -6,6 +6,7 @@ date: "Last Updated: `r format(Sys.time(), '%b %d, %Y')` "
 
 ```{r Dependency Imports, eval=TRUE, echo=FALSE, message=FALSE, include=FALSE}
 library("tidyverse")
+library("dplyr")
 library("here")
 library("readr")
 library("ggplot2")
@@ -239,17 +240,13 @@ sea_ice_2 %>% filter(year > 1979 & year < 2021) %>%
         axis.ticks = element_line(size = 1))
 ```
 ``` {r delete this when done}
-
 this_path <- list.files(path = here("data_cleaned"), full.names = TRUE)
-
 compare <- read_csv(file=this_path[10])
-
 ```
 
 
 
-``` {r Question 4) a.}
-
+``` {r Question 4) a., warning=FALSE}
 stop_search_col_types = list(
   "X1" = col_skip(),
   "year" = col_character(),
@@ -259,32 +256,30 @@ stop_search_col_types = list(
   "legislation_type" = col_character(),
   "geography" = col_character(),
   "X8" = col_skip(),
-  "stops" = col_double(),
+  "stops" = col_character(),
   "X10" = col_skip(),
-  "population" = col_double(),
+  "population" = col_character(),
   "rate" = col_double(),
   "X13" = col_skip(),
   "X14" = col_skip()
 )
-
 stop_search_col_names = c("X1", "year", "X3", "ethnicity", "X5",
                           "legislation_type", "geography", "X8",
                           "stops", "X10", "population","rate",
                           "X13", "X14")
-stop_search <- read_csv(file=data_paths[7])
+
 stop_search_1 <- read_csv(file=data_paths[7],
-                        col_types=stop_search_col_types,
-                        col_names=stop_search_col_names,
-                        skip=1) %>% 
-  filter(ethnicity == "All" | ethnicity == "Asian" | ethnicity == "Black" | ethnicity == "White" | ethnicity == "Other")
+                          col_types=stop_search_col_types,
+                          col_names=stop_search_col_names,
+                          skip=1) %>%
+  filter(ethnicity == "All" | ethnicity == "Asian" | ethnicity == "Black" | ethnicity == "White" | ethnicity == "Other") %>% 
+  mutate(stops = as.integer(gsub(",", "", stops))) %>% 
+  mutate(population = as.integer(gsub(",", "", population)))
+```
 
+``` {r Question 4) b.}
 
-
-stop_search_2 <- stop_search_1 %>%
-  mutate(rate_white = filter(ethnicity == "White")) %>% 
-  mutate(relative_disparity = rate / rate_white$rate[ethnicity]) 
-
-
-
-
+stop_search_2 <-stop_search_1 %>% 
+  mutate(rate_white = rep(rate[ethnicity == "White"], length.out=2926)) %>% 
+  mutate(relative_disparity = rate[year] / rate_white)
 ```

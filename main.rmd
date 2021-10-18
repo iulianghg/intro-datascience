@@ -279,7 +279,26 @@ stop_search_1 <- read_csv(file=data_paths[7],
 
 ``` {r Question 4) b.}
 
-stop_search_2 <-stop_search_1 %>% 
-  mutate(rate_white = rep(rate[ethnicity == "White"], length.out=2926)) %>% 
-  mutate(relative_disparity = rate[year] / rate_white)
+rate_white <- select(stop_search_1, c(1, 3, 4 ,7)) %>%
+  # Select columns at positions 1, 3, 4 and 7 from the "stop_search_1" tibble
+  filter(stop_search_1$ethnicity == "White") %>%
+  # Filter out any observations where "ethnicity" variable is not "White"
+  mutate(rate_white = rate)
+  # Rename column "rate" to "rate_white" for clarity
+# Create a new tibble containing the stop-and-search rate for the "White" ethnicity and other variable used for identification
+
+stop_search_2 <- stop_search_1 %>%
+  left_join(rate_white, by = c("year", "legislation_type", "geography")) %>%
+  # Return all rows from stop_search_1, and any rows with matching "year", "legislation_type" and "geography" from the "rate_white" tibble
+  select(-9) %>%
+  # Drop redundant "rate_white" column
+  rename(rate_white = rate.y) %>%
+  # Rename "rate.y" to "rate_white"
+  rename(rate = rate.x) %>%
+  # Rename "rate.x" to "rate"
+  distinct() %>% 
+  # Remove duplicate rows (where all variables match)
+  mutate(relative_disparity = rate / rate_white)
+  # Create a new column and store the result of the rate / rate_white calculation
+
 ```

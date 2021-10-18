@@ -302,3 +302,26 @@ stop_search_2 <- stop_search_1 %>%
   # Create a new column and store the result of the rate / rate_white calculation
 
 ```
+
+1) How has the relative disparity for people of Asian, Black and White ethnicity changed over time?
+
+``` {r Q1}
+
+
+stop_search_2 %>% filter(ethnicity != "Other" & ethnicity != "All") %>% 
+  ggplot(aes(fill=ethnicity, x=year, y=relative_disparity))+
+    geom_bar(position = "dodge", stat = "identity")+
+    labs(title="Stop-and-search rate over time by ethnicity",
+         x="Year",
+         y="Stop-and-search rate"
+         )+
+    theme(axis.title = element_text(size = 13),
+          axis.text.x = element_text(angle=75, vjust = 0.5, face = "bold"),
+          plot.title = element_text(size = 20,
+                                  hjust = 0.5),
+          panel.grid.major = element_blank(),
+          panel.grid.minor = element_line(colour = "grey"),
+          panel.background = element_blank(),
+          axis.line = element_line(colour = "black"))
+
+```

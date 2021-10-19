@@ -325,3 +325,51 @@ stop_search_2 %>% filter(ethnicity != "Other" & ethnicity != "All") %>%
           axis.line = element_line(colour = "black"))
 
 ```
+
+``` {r Q2}
+
+stop_search_2 %>%
+  filter(geography != "All - excluding BTP" & 
+         geography != "All - excluding BTP and Greater Manchester" &
+         geography != "All - including BTP and excluding Greater Manchester" &
+         geography != "All - including BTP") %>%
+  filter(ethnicity != "All") %>%
+  drop_na(stops) %>% 
+  group_by(geography) %>%
+  summarise(stops = sum(stops)) %>% 
+         
+  ggplot(
+    aes(x=reorder(geography, stops), y=stops))+
+  geom_bar(width = 0.85, stat = "identity", fill = "lightblue", color = "black")+
+  scale_y_continuous(label=comma, expand = c(0, 0))+
+  scale_x_discrete()+
+  labs(title="Total number of stop-and-searches per geographical\nregion in UK between 2006-2020",
+       x="Location\n",
+       y="Number of stops")+
+  theme(axis.title = element_text(size = 14),
+        plot.title = element_text(size = 16),
+        axis.line = element_line(size = 1),
+        axis.text.y = element_text(size = 7),
+        axis.ticks = element_line(size = 1),
+        panel.background = element_blank(),
+        panel.grid.major.x = element_line(color="lightgrey"))+
+  coord_flip()
+
+
+
+```
+
+``` {r Q3}
+
+stop_search_2 %>% filter(ethnicity != "All" & ethnicity != "Other") %>% 
+  ggplot(aes(x=legislation_type, y=stops, fill=fct_rev(ethnicity)))+
+  geom_bar(position="fill", stat="identity")+
+  scale_y_continuous(labels=percent_format(), expand = c(0,0))+
+  scale_x_discrete(expand = c(0,0))+
+  coord_flip()+
+  labs(title = "Percentage of stops under each legislation by ethnicity",
+       x = "Legislation",
+       y = "Stops",
+       fill = "Ethnicity")
+
+```

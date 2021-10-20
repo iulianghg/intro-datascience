@@ -303,28 +303,53 @@ stop_search_2 <- stop_search_1 %>%
 
 ```
 
-1) How has the relative disparity for people of Asian, Black and White ethnicity changed over time?
+``` {r Question 4) c / d } ```
+
+1) Has the relative disparity of stop-and-search rates for people of Asian and Black ethnicity increased or decreased over the years?
 
 ``` {r Q1}
 
-
-stop_search_2 %>% filter(ethnicity != "Other" & ethnicity != "All") %>% 
+stop_search_2 %>%
+  filter(ethnicity != "Other" & ethnicity != "All" & ethnicity != "White") %>%
+  # Filter out any ethnicity groups belonging to "Other", "All" and "White"
   ggplot(aes(fill=ethnicity, x=year, y=relative_disparity))+
-    geom_bar(position = "dodge", stat = "identity")+
-    labs(title="Stop-and-search rate over time by ethnicity",
+    geom_col(position = "dodge")+
+    # Plot a grouped bar chart ("dodge" to unstack the bars)
+    labs(title="Stop-and-search relative disparity over time by ethnicity",
          x="Year",
-         y="Stop-and-search rate"
-         )+
+         y="Relative disparity",
+         fill="Ethnicity")+
+    # Change title, axis labels and legend label
+    scale_y_continuous(expand = c(0,0),
+                       # Remove gap between x-axis and bars
+                       minor_breaks = seq(0, 100, 10))+
+                       # Insert horizontal grid lines between y-values 0-100 in increments of 10
+    # Set y-axis as continuous
     theme(axis.title = element_text(size = 13),
+          # Resize axis titles
           axis.text.x = element_text(angle=75, vjust = 0.5, face = "bold"),
-          plot.title = element_text(size = 20,
-                                  hjust = 0.5),
-          panel.grid.major = element_blank(),
-          panel.grid.minor = element_line(colour = "grey"),
+          # Change angle of x-axis tick labels to 75 deg, move downwards and make font bold
+          plot.title = element_text(size = 18, hjust = 0.1),
+          # Resize title and move to the right
+          panel.grid.major.y = element_line(color = "grey"),
+          # Set colour of horizontal grid lines to grey
+          panel.grid.major.x = element_blank(),
+          # Remove vertical grid lines
           panel.background = element_blank(),
+          # Remove background panel
           axis.line = element_line(colour = "black"))
+          # Set axis lines colour as black
+    # Change theme settings
+  # Plot bar chart
 
 ```
+Between 2006 and 2020, the relative disparity has increased for both ethnic groups, meaning that there is a larger stop-and-search rate for people belonging to these
+categories in proportion to people belonging to the White ethnic group than in the past. As observed on the bar plote above, this trend peaked in 2017/18 for the Black ethnic category, and in 2010/11
+for the Asian ethnic category.
+
+
+
+2)In what geographical area of UK do the most stop-and-searches occur?
 
 ``` {r Q2}
 
@@ -333,18 +358,25 @@ stop_search_2 %>%
          geography != "All - excluding BTP and Greater Manchester" &
          geography != "All - including BTP and excluding Greater Manchester" &
          geography != "All - including BTP") %>%
+  # Filter out non-individual geography groups
   filter(ethnicity != "All") %>%
+  # Filter out ethnicity group "All"
   drop_na(stops) %>% 
+  # Remove rows where "stops" value is NA
   group_by(geography) %>%
-  summarise(stops = sum(stops)) %>% 
-         
-  ggplot(
-    aes(x=reorder(geography, stops), y=stops))+
+  summarise(stops = sum(stops)) %>%
+  # Reduce the number of rows by summing the amount of stops per geographic group
+  ggplot(aes(x=reorder(geography, stops), y=stops))+
+  # Plot bars by geography in order of stops
   geom_bar(width = 0.85, stat = "identity", fill = "lightblue", color = "black")+
+  # Define bars' parameters on bar plot
   scale_y_continuous(label=comma, expand = c(0, 0))+
+  # Add comma thousand separators on y-axis labels and remove gap between axis and bars
   scale_x_discrete()+
+  # Set x-axis as discrete
   labs(title="Total number of stop-and-searches per geographical\nregion in UK between 2006-2020",
        x="Location\n",
+       # Newline character to create a gap between axis label and axis tick labels
        y="Number of stops")+
   theme(axis.title = element_text(size = 14),
         plot.title = element_text(size = 16),
@@ -353,23 +385,39 @@ stop_search_2 %>%
         axis.ticks = element_line(size = 1),
         panel.background = element_blank(),
         panel.grid.major.x = element_line(color="lightgrey"))+
+  # Resize title, axis labels, axis tick labels, axis ticks, remove panel background and customize grid
   coord_flip()
-
-
+  # Flip x and y-axis
 
 ```
+Clearly, the area governed by the Metropolitan Police (i.e. Greater London region, excluding the City of London) is where most stop-and-searches occur in UK.
+This may be attributed to a higher population concentration, however, further analysis is required to establish that.
+
+
+
+3)Are any of the ethnic categories related to stop-and-searches under one legal article section?
 
 ``` {r Q3}
 
-stop_search_2 %>% filter(ethnicity != "All" & ethnicity != "Other") %>% 
-  ggplot(aes(x=legislation_type, y=stops, fill=fct_rev(ethnicity)))+
+stop_search_2 %>% filter(ethnicity != "All" & ethnicity != "Other") %>%
+  # Filter out "All" and "Other" ethnicity groups
+  ggplot(aes(x=legislation_type, y=stops, fill=ethnicity))+
+  # Map values to plot
   geom_bar(position="fill", stat="identity")+
+  # "fill" to stack bars
   scale_y_continuous(labels=percent_format(), expand = c(0,0))+
+  # Change y-axis scale to continuous to enable percentage format. Also remove gap between axis and bars
   scale_x_discrete(expand = c(0,0))+
+  # Set x-axis as discrete and remove gap between bars and axis
   coord_flip()+
+  # Flip x and y-axis
   labs(title = "Percentage of stops under each legislation by ethnicity",
        x = "Legislation",
        y = "Stops",
        fill = "Ethnicity")
+  # Change label text
 
 ```
+
+Overall, people of Asian ethnicity seem to be mostly affected by Section 44/47a, with people of Black ethnicity being most affected by Section 60 and people of White
+ethnicity being affect by All legislation types on average. However, it is worth noting that this data does not cover equally-sized samples of each ethnic category.

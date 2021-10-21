@@ -5,7 +5,6 @@ date: "Last Updated: `r format(Sys.time(), '%b %d, %Y')` "
 ---
 
 ```{r Dependency Imports, eval=TRUE, echo=FALSE, message=FALSE, include=FALSE}
-
 library("tidyverse")
 library("here")
 library("readr")
@@ -13,24 +12,18 @@ library("lubridate")
 library("scales")
 library("readxl")
 # Package imports
-
 ```
 
 ``` {r Import data and initial settings}
-
 data_paths <- list.files(path=here("data"), full.names=TRUE)
 # Store path to 'data' folder in a list to easily access data files
-
 options(scipen=8)
 # Fixed notation will be preferred unless it is more than 8 digits wider
-
 ```
 
 ```{r Question 1) a.}
-
-nasa_temp_col_names <- c("date", "temp")
+nasa_temp_col_names <- c("date", "temp", "X3")
 # Character vector to define column names in order
-
 nasa_temp_col_types <- list("date"=col_date(format="%Y"),
                             # "format" argument enforces YYYY-01-01 format
                             "temp"=col_double(),
@@ -38,17 +31,15 @@ nasa_temp_col_types <- list("date"=col_date(format="%Y"),
                             "X3"=col_skip())
                             # Skip adding this column to the tibble
 # List mapping column names to types contained in that column
-
 nasa_temp <- read_table(file=data_paths[4],
                         # 4th element in path list
                         col_names=nasa_temp_col_names,
                         # Column names as defined in "nasa_temp_col_names"
                         col_types=nasa_temp_col_types,
                         # Column types as defined in "nasa_temp_col_types"
-                        skip=5)
+                        skip=5) 
                         # Skip first 5 rows as they contain no data
 # Store data in 'nasa_temp' tibble using read_table as the data isn't comma-separated
-
 ggplot(data=nasa_temp, aes(x=date, y=temp))+
   # Plot "nasa_temp" tibble and map columns to axis
   geom_line()+
@@ -61,17 +52,22 @@ ggplot(data=nasa_temp, aes(x=date, y=temp))+
        # Set X-axis label to specified string
        y="Temperature (\u00B0C)",
        # Set Y-axis label to specified string. \u00B0 is the unicode value for degree symbol
-       caption="Data: https://climate.nasa.gov/vital-signs/global-temperature/")
-       # Set caption to specified string (link to data source)
+       caption=expression(
+         "Data: " +
+         "https://climate.nasa.gov/vital-signs/global-temperature/"))+
+       # Use expression to break down long string and set caption to specified string (link to data source)
+  theme(panel.grid = element_line(color="grey"),
+        # Add grey coloured major and minor grids
+        axis.line = element_line(),
+        # Insert axis lines with default parameters (black, size 1)
+        panel.background = element_blank())
+        # Remove background panel
   # Change default label values such as title, x-axis and y-axis labels
-
 ```
 
 ```{r Question 1) b., message=FALSE}
-
 nasa_ice_col_names = c("date", "X2", "X3", "X4", "ice", "X6")
 # Assign relevant labels only to desired columns
-
 nasa_ice_col_types = list("date"=col_date(format = "%Y"),
                           "X2"=col_skip(),
                           "X3"=col_skip(),
@@ -79,7 +75,6 @@ nasa_ice_col_types = list("date"=col_date(format = "%Y"),
                           "ice"=col_double(),
                           "X6"=col_skip())
 # Assign data types to desired columns. Assign "skip" to columns to be dropped
-
 nasa_ice <- read_csv2(file=data_paths[2],
                      col_names=nasa_ice_col_names,
                      col_types=nasa_ice_col_types,
@@ -91,18 +86,18 @@ ggplot(data=nasa_ice, aes(x=date, y=ice)) +
   geom_point(color="blue")+
   labs(title="Arctic Sea Ice Minimum",
        x="Year",
-       y="Minimum arctic sea ice extent in million square km",
-       caption="Data: https://climate.nasa.gov/vital-signs/arctic-sea-ice/")
+       y="Minimum arctic sea ice extent (million square km)",
+       caption="Data: https://climate.nasa.gov/vital-signs/arctic-sea-ice/")+
+  theme(panel.grid = element_line(color="grey"),
+        axis.line = element_line(),
+        panel.background = element_blank())
 # Same as Q1a, plot a line chart with the same parameters but a different data set
-
 ```
 
 ``` {r Question 1) c.}
-
 nasa_sea_col_names = c(
   "X1", "X2", "date", "X4", "X5", "X6", "X7", "X8", "X9", "X10", "X11", "sea")
 # Assign names to columns
-
 nasa_sea_col_types = list(
   "X1"=col_skip(),
   "X2"=col_skip(),
@@ -117,7 +112,6 @@ nasa_sea_col_types = list(
   "X11"=col_skip(),
   "sea"=col_double())
 # Assign data types to columns according to their names
-
 nasa_sea <- read_table(file=data_paths[5],
                      col_names=nasa_sea_col_names,
                      col_types=nasa_sea_col_types,
@@ -132,16 +126,16 @@ ggplot(data=nasa_sea, aes(x=date, y=sea))+
   labs(title="Sea level variation",
        x="Year",
        y="Sea level variance compared to reference year 2005 (mm)",
-       caption="Data: https://climate.nasa.gov/vital-signs/sea-level/")
+       caption="Data: https://climate.nasa.gov/vital-signs/sea-level/")+
+  theme(panel.grid = element_line(color="grey"),
+        axis.line = element_line(),
+        panel.background = element_blank())
 # Same as Q1a and Q1b, plot a line chart. No dots for data points due to visualisation impairment
-
 ```
 
 ``` {r Question 1) d.}
-
 nasa_co2_col_names = c("X1", "X2", "date", "co2", "X5", "X6", "X7", "X8")
 # Assign names to columns
-
 nasa_co2_col_types=list(
   "X1"=col_skip(),
   "X2"=col_skip(),
@@ -152,7 +146,6 @@ nasa_co2_col_types=list(
   "X7"=col_skip(),
   "X8"=col_skip())
 # Assign data types to columns according to their names
-
 nasa_co2 <- read_table(file=data_paths[3],
                        col_names=nasa_co2_col_names,
                        col_types=nasa_co2_col_types,
@@ -172,26 +165,25 @@ ggplot(data=nasa_co2, aes(x=date, y=co2))+
        # Calling the "expression()" method to enable the use of subscript for "CO2" string
        x="Year",
        y=expression("Average global CO"[2]*" level in parts per million (ppm)"),
-       caption="Data: https://climate.nasa.gov/vital-signs/carbon-dioxide/")
+       caption="Data: https://climate.nasa.gov/vital-signs/carbon-dioxide/")+
        # Calling the "expression()" method to enable the use of subscript for "CO2" string
+  theme(panel.grid = element_line(color="grey"),
+        axis.line = element_line(),
+        panel.background = element_blank())
 # Same as previous questions, plot a line chart
-
 ```
 
-```{r Question 1) e., message=FALSE, include=FALSE}
-
+```{r Question 1) e.}
 nasa <- left_join(nasa_temp, nasa_ice) %>% 
   # return all rows from nasa_temp, all columns from nasa_temp and nasa_ice.
   full_join(nasa_sea) %>%
   # "full_join()" returns all rows and all columns from both "nasa" and "nasa_sea"
   full_join(nasa_co2)
   # "full_join()" returns all rows and all columns from both "nasa" and "nasa_co2"
-
 ```
 
 ```{r Question 1) f., warning=FALSE}
-
-ggplot(data=nasa %>% 
+ggplot(data=nasa %>%
          filter(date >= as.Date("1960-01-01") & date < as_date("2021-01-01")),
          # Filter out dates outside of the 1960-2021 range before plotting
        aes(x=temp, y=co2))+
@@ -204,38 +196,32 @@ ggplot(data=nasa %>%
                           " average temperature and CO"[2]*" levels"),
        x="Temperature (\u00B0C)",
        y=expression("Average global CO"[2]*" level in parts per million (ppm)"),
-       color="Year")
+       color="Year")+
+  theme(axis.line = element_line(),
+        panel.background = element_blank())
        # Map the legend colour to "Year" value
 # Use default ggplot plot type (scatter) - this happens by not calling "geom_line()" method within the "ggplot" function
-
 ```
 
 ``` {r Question 2) a.}
-
 historic_co2_col_names = c("yrbp", "co2")
 # Assign names to columns
-
 historic_co2_col_types = list("yrbp" = col_double(),
                               "co2" = col_double())
 # Assign data types to columns according to their names
-
 historic_co2 <- read_table(file=data_paths[1],
                            col_names = historic_co2_col_names,
                            col_types = historic_co2_col_types,
                            skip=774)
 # Read the data file into the "historic_co2" tibble and skip the first 774 lines as they don't contain relevant data
-
 ```
 
 ```{r Question 2) b., message=FALSE, include=FALSE}
-
 historic_co2 %>% mutate(yrbp = yrbp + 13)
 # Change reference year to 2021 by incrementing "yrbp" values by 13
-
 nasa_co2 %>%
   mutate(yrbp = 2021 - as.double(format(date, format="%Y")))
 # Produce "yrbp" values for "nasa_co2" with the reference year 2021 and output in the same format as "historic_co2"
-
 combined_co2 <- full_join(nasa_co2, historic_co2) %>%
   # "full_join()" returns all rows and all columns from both "nasa_co2" and "historic_co2"
   select(!date) %>%
@@ -244,11 +230,9 @@ combined_co2 <- full_join(nasa_co2, historic_co2) %>%
   # Arrange rows in ascending order by "yrbp" values
   relocate(2)
   # Swap column order so that "yrbp" occupies position 1
-
 ```
 
-``` {r Question 2) c.}
-
+``` {r Question 2) c., warning=FALSE}
 avg <- filter(combined_co2, yrbp == 0) %>% 
   # Filter only "yrbp" == 0, i.e. year 2021 to calculate average
   colMeans(co2) %>%
@@ -256,7 +240,6 @@ avg <- filter(combined_co2, yrbp == 0) %>%
   unname()
   # Remove name of variable to only be left with 1 cell for ease of displaying on plot
 # Calculate "avg" variable to display on plot
-
 ggplot(data=combined_co2, aes(x=yrbp, y=co2))+
   geom_line(color="black", size = 0.9)+
   # Line plot, set size, i.e. line thickness to 0.9 for a closer match
@@ -272,7 +255,7 @@ ggplot(data=combined_co2, aes(x=yrbp, y=co2))+
     # Specify that the curve is an arrow and define some parameters
     colour = "#EC7014",
     # Set hexadecimal orange shade colour for a closer match (closer than orange)
-    size = 0.9
+    size = 0.9,
     # Set thickness of arrow curve
     angle = 90,
     # Set the angle of the arrow
@@ -290,27 +273,25 @@ ggplot(data=combined_co2, aes(x=yrbp, y=co2))+
         axis.text = element_text(size = 12))
         # Resize the plot's title and axis labels' fonts for a closer match
   # Override some of "theme_classic()" settings
-
 ```
 
-``` {r Question 3) a., include=FALSE}
-
+``` {r Question 3) a.}
 sea_ice_1 <- read_excel(path=data_paths[6],
                         sheet=1) %>%
   # Use read_excel() wrapper method which is better suited for reading Excel spreadsheets
   fill(1) %>%
   # Fill first column's missing values using the value from the row above
-  gather(key="year", value="extent", 3:46) %>% 
-  # Gather columns 3 to 46 into key (year) and value "extent" pairs
-  select(-(3:5)) %>%
+  pivot_longer(3:46, names_to = "year", values_to = "extent") %>% 
+  # Lengthen columns 3 to 46 into key (year) and value "extent" pairs
+  select(-(3:5)) %>% 
   # Drop columns 3 to 5
-  gather(key="key", value="month", 1) %>%
-  # Gather column 1 into key and month pairs
-  select(-4) %>%
-  # Drop column 4 ("key")
-  gather(key="day", value="day", 1) %>% 
-  # Gather column 1 into key and value pairs
+  pivot_longer(1, names_to = "key", values_to = "month") %>% 
+  # Lengthen column 1 into key and month pairs
   select(-4) %>% 
+  # Drop column 4 ("key")
+  pivot_longer(1, names_to = "key", values_to = "day") %>% 
+  # Lengthen column 1 into key and value pairs
+  select(-4) %>%
   # Drop the 4th column as it is an inevitable product of the "gather()" method
   mutate(month = recode(month,
                         January = 1,
@@ -324,11 +305,10 @@ sea_ice_1 <- read_excel(path=data_paths[6],
                         September = 9,
                         October = 10,
                         November = 11,
-                        December = 12)) %>% 
-
+                        December = 12)) %>%
   # Map numerical month values to month names
   relocate(extent) %>%
-  # Reposition the "extent" column into position 1
+  # Re-position the "extent" column into position 1
   arrange(month, day) %>%
   # Sort rows in ascending order by "month" values first, then by "day" values
   mutate(year = as.integer(year)) %>%
@@ -337,11 +317,9 @@ sea_ice_1 <- read_excel(path=data_paths[6],
   # Specify data type of "month" column as "integer"
   mutate(day = as.integer(day))
   # Specify data type of "day" column as "integer"
-
 ```
 
 ``` {r Question 3) b., include=FALSE}
-
 mean <- select(sea_ice_1, 1:3) %>%
   # Select the first 3 columns of "sea_ice_1" only
   filter(year == 1979) %>%
@@ -351,7 +329,6 @@ mean <- select(sea_ice_1, 1:3) %>%
   summarise(mean = (mean(extent, na.rm=TRUE) / 12))
   # Summarise tibble to fewer rows for each combination of "extent" monthly mean and remove NA values
 # Create a new tibble to store mean values of "extent" for the year 1979
-
 sea_ice_2 <- select(sea_ice_1, 1:3) %>%
   # Select the first 3 columns of "sea_ice_1" only
   group_by(year, month) %>%
@@ -362,11 +339,9 @@ sea_ice_2 <- select(sea_ice_1, 1:3) %>%
   # Summarise tibble to fewer rows for each combination of "proportion_baseline_extent" and remove NA values
   arrange(month)
   # Sort rows in ascending order by "month" values
-
 ```
 
 ``` {r Question 3) c.}
-
 sea_ice_2 %>% filter(year > 1979 & year < 2021) %>%
   # Select only years in the range 1979 to 2021 for plotting
   ggplot()+
@@ -378,31 +353,27 @@ sea_ice_2 %>% filter(year > 1979 & year < 2021) %>%
   scale_y_discrete(limits = month.name, expand = expansion(mult =c(0, 0.1)))+
   # Sort Y-axis label in ascending order (January to December) rather than the default (alphabetical)
   scale_x_continuous(expand = c(0, 0))+
-  # Set the X-axis scale type as continuous (non-discrete values)
+  # Set the X-axis scale type as continuous (non-discrete values) and remove gap between axis and tiles
   labs(title="Sea ice northern hemisphere",
        x="Year",
        y="Month")+
   # Change plot label names
-  theme_classic()+
-  # Apply theme_classic()'s settings to skip some extra steps
   theme(axis.title = element_text(size = 13),
         plot.title = element_text(size = 20,
                                   hjust = 0.5),
         axis.line = element_line(size = 1),
-        axis.ticks = element_line(size = 1))
+        axis.ticks = element_line(size = 1),
+        panel.background = element_blank())
   # Override some of theme_classic()'s settings for a closer matching plot
 # Plot a heat map
-
 ```
 
-``` {r Question 4) a., warning=FALSE}
-
+``` {r Question 4) a.}
 stop_search_col_names = c("X1", "year", "X3", "ethnicity", "X5",
                           "legislation_type", "geography", "X8",
                           "stops", "X10", "population","rate",
                           "X13", "X14")
 # Assign names to columns
-
 stop_search_col_types = list(
   "X1" = col_skip(),
   "year" = col_character(),
@@ -422,7 +393,6 @@ stop_search_col_types = list(
   "X13" = col_skip(),
   "X14" = col_skip())
 # Assign data types to columns according to their names
-
 stop_search_1 <- read_csv(file=data_paths[7],
                           col_types=stop_search_col_types,
                           col_names=stop_search_col_names,
@@ -438,7 +408,6 @@ stop_search_1 <- read_csv(file=data_paths[7],
   # Remove comma thousand separators from the "stops" column and change column's type to "integer"
   mutate(population = as.integer(gsub(",", "", population)))
   # Remove comma thousand separators from the "population" column and change column's type to "integer"
-
 ```
 
 ``` {r Question 4) b.}
@@ -467,7 +436,6 @@ stop_search_2 <- stop_search_1 %>%
 Question 4) c. (i)
 1) Has the relative disparity of stop-and-search rates for people of Asian and Black ethnicity increased or decreased over the years?
 ``` {r Question 4) d. (i)}
-
 stop_search_2 %>%
   filter(ethnicity != "Other" & ethnicity != "All" & ethnicity != "White") %>%
   # Filter out any ethnicity groups belonging to "Other", "All" and "White"
@@ -500,7 +468,6 @@ stop_search_2 %>%
           # Set axis lines colour as black
     # Change theme settings
   # Plot bar chart
-
 ```
 Between 2006 and 2020, the relative disparity has increased for both ethnic groups, meaning that there is a larger stop-and-search rate for people belonging to these categories in proportion to people belonging to the White ethnic group than in the past. As observed on the bar plote above, this trend peaked in 2017/18 for the Black ethnic category, and in 2010/11 for the Asian ethnic category.
 
@@ -509,7 +476,6 @@ Question 4) c. (ii)
 2)In what geographical area of UK do the most stop-and-searches occur?
 
 ``` {r Question 4) d. (ii)}
-
 stop_search_2 %>%
   filter(geography != "All - excluding BTP" & 
          geography != "All - excluding BTP and Greater Manchester" &
@@ -545,7 +511,6 @@ stop_search_2 %>%
   # Resize title, axis labels, axis tick labels, axis ticks, remove panel background and customize grid
   coord_flip()
   # Flip x and y-axis
-
 ```
 Clearly, the area governed by the Metropolitan Police (i.e. Greater London region, excluding the City of London) is where most stop-and-searches occur in UK. This may be attributed to a higher population concentration, however, further analysis is required to establish that.
 
@@ -554,7 +519,6 @@ Question 4) c. (iii)
 3)Are any of the ethnic categories related to stop-and-searches under one legal article section?
 
 ``` {r Question 4) d. (iii)}
-
 stop_search_2 %>% filter(ethnicity != "All" & ethnicity != "Other") %>%
   # Filter out "All" and "Other" ethnicity groups
   ggplot(aes(x=legislation_type, y=stops, fill=ethnicity))+
@@ -572,7 +536,6 @@ stop_search_2 %>% filter(ethnicity != "All" & ethnicity != "Other") %>%
        y = "Stops",
        fill = "Ethnicity")
   # Change label text
-
 ```
 
 Overall, people of Asian ethnicity seem to be mostly affected by Section 44/47a, with people of Black ethnicity being most affected by Section 60 and people of White ethnicity being affect by All legislation types on average. However, it is worth noting that this data does not cover equally-sized samples of each ethnic category.

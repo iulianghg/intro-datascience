@@ -1,5 +1,5 @@
 ---
-title: "main"
+title: "Introduction to Data Science - 21MAP500 - Coursework"
 output: html_document
 date: "Last Updated: `r format(Sys.time(), '%b %d, %Y')` " 
 ---
@@ -44,8 +44,8 @@ ggplot(data=nasa_temp, aes(x=date, y=temp))+
   # Plot "nasa_temp" tibble and map columns to axis
   geom_line()+
   # Specify plot type (line plot) and leave the line as the default colour (black)
-  geom_point(color="blue")+
-  # Highlight each data point with a blue dot on the plot
+  geom_point(color="black")+
+  # Mark each data point with a black dot on the plot
   labs(title="Global Yearly Land-Ocean Temperature",
        # Set plot title to specified string
        x="Date",
@@ -83,7 +83,7 @@ nasa_ice <- read_csv2(file=data_paths[2],
 # Use read_csv2 as this data set follows European convention (i.e. ";" to separate values, "," to separate decimals)
 ggplot(data=nasa_ice, aes(x=date, y=ice)) +
   geom_line()+
-  geom_point(color="blue")+
+  geom_point(color="black")+
   labs(title="Arctic Sea Ice Minimum",
        x="Year",
        y="Minimum arctic sea ice extent (million square km)",
@@ -153,27 +153,27 @@ nasa_co2 <- read_table(file=data_paths[3],
                        # Define line starting with "#" as comments in the data file
   mutate(date=date_decimal(date)) %>%
   # Convert date from decimal type to datetime type
-  mutate(date=as_date(date)) %>%
+  mutate(date=as.Date(date, format= "%Y-%m-%d")) %>%
   # Set "date" type as date instead of datetime
   mutate(date=floor_date(date, unit="month")) %>%
-  # Round down to nearest month according to specification
-  filter(co2>0)
-  # Filter out "co2" values below "0" as these are impossible, so the recorded data must be wrong
-ggplot(data=nasa_co2, aes(x=date, y=co2))+
-  geom_line()+
-  labs(title=expression("CO"[2]*" levels over time"),
-       # Calling the "expression()" method to enable the use of subscript for "CO2" string
-       x="Year",
-       y=expression("Average global CO"[2]*" level in parts per million (ppm)"),
-       caption="Data: https://climate.nasa.gov/vital-signs/carbon-dioxide/")+
-       # Calling the "expression()" method to enable the use of subscript for "CO2" string
-  theme(panel.grid = element_line(color="grey"),
-        axis.line = element_line(),
-        panel.background = element_blank())
-# Same as previous questions, plot a line chart
+    # Round down to nearest month according to specification
+    filter(co2>0)
+    # Filter out "co2" values below "0" as these are impossible, so the recorded data must be wrong
+  ggplot(data=nasa_co2, aes(x=date, y=co2))+
+    geom_line()+
+    labs(title=expression("CO"[2]*" levels over time"),
+         # Calling the "expression()" method to enable the use of subscript for "CO2" string
+         x="Year",
+         y=expression("Average global CO"[2]*" level in parts per million (ppm)"),
+         caption="Data: https://climate.nasa.gov/vital-signs/carbon-dioxide/")+
+         # Calling the "expression()" method to enable the use of subscript for "CO2" string
+    theme(panel.grid = element_line(color="grey"),
+          axis.line = element_line(),
+          panel.background = element_blank())
+  # Same as previous questions, plot a line chart
 ```
 
-```{r Question 1) e.}
+```{r Question 1) e., include=FALSE}
 nasa <- left_join(nasa_temp, nasa_ice) %>% 
   # return all rows from nasa_temp, all columns from nasa_temp and nasa_ice.
   full_join(nasa_sea) %>%
@@ -192,8 +192,7 @@ ggplot(data=nasa %>%
   # Sequential colouring of data points according to their values, defining a scale based on the value range
   scale_color_gradient(low="blue", high="red")+
   # Select non-default colours for better visualisation (i.e blue is low, red is high)
-  labs(title=expression("Relationship between global" +
-                          " average temperature and CO"[2]*" levels"),
+  labs(title=expression("Global average temperature and CO"[2]*" levels"),
        x="Temperature (\u00B0C)",
        y=expression("Average global CO"[2]*" level in parts per million (ppm)"),
        color="Year")+
@@ -206,7 +205,7 @@ ggplot(data=nasa %>%
 ``` {r Question 2) a.}
 historic_co2_col_names = c("yrbp", "co2")
 # Assign names to columns
-historic_co2_col_types = list("yrbp" = col_double(),
+historic_co2_col_types = list("yrbp" = col_integer(),
                               "co2" = col_double())
 # Assign data types to columns according to their names
 historic_co2 <- read_table(file=data_paths[1],
@@ -216,11 +215,11 @@ historic_co2 <- read_table(file=data_paths[1],
 # Read the data file into the "historic_co2" tibble and skip the first 774 lines as they don't contain relevant data
 ```
 
-```{r Question 2) b., message=FALSE, include=FALSE}
-historic_co2 %>% mutate(yrbp = yrbp + 13)
+```{r Question 2) b., include=FALSE}
+historic_co2 <- historic_co2 %>% mutate(yrbp = yrbp + 13)
 # Change reference year to 2021 by incrementing "yrbp" values by 13
-nasa_co2 %>%
-  mutate(yrbp = 2021 - as.double(format(date, format="%Y")))
+nasa_co2 <- nasa_co2 %>% 
+  mutate(yrbp = 2021 - as.numeric(format(date, format="%Y")))
 # Produce "yrbp" values for "nasa_co2" with the reference year 2021 and output in the same format as "historic_co2"
 combined_co2 <- full_join(nasa_co2, historic_co2) %>%
   # "full_join()" returns all rows and all columns from both "nasa_co2" and "historic_co2"
@@ -275,7 +274,7 @@ ggplot(data=combined_co2, aes(x=yrbp, y=co2))+
   # Override some of "theme_classic()" settings
 ```
 
-``` {r Question 3) a.}
+``` {r Question 3) a., include=FALSE}
 sea_ice_1 <- read_excel(path=data_paths[6],
                         sheet=1) %>%
   # Use read_excel() wrapper method which is better suited for reading Excel spreadsheets
@@ -368,7 +367,7 @@ sea_ice_2 %>% filter(year > 1979 & year < 2021) %>%
 # Plot a heat map
 ```
 
-``` {r Question 4) a.}
+``` {r Question 4) a., warning=FALSE}
 stop_search_col_names = c("X1", "year", "X3", "ethnicity", "X5",
                           "legislation_type", "geography", "X8",
                           "stops", "X10", "population","rate",
@@ -410,7 +409,7 @@ stop_search_1 <- read_csv(file=data_paths[7],
   # Remove comma thousand separators from the "population" column and change column's type to "integer"
 ```
 
-``` {r Question 4) b.}
+``` {r Question 4) b., warning=FALSE}
 rate_white <- select(stop_search_1, c(1, 3, 4 ,7)) %>%
   # Select columns at positions 1, 3, 4 and 7 from the "stop_search_1" tibble
   filter(stop_search_1$ethnicity == "White") %>%
@@ -433,9 +432,8 @@ stop_search_2 <- stop_search_1 %>%
   # Create a new column and store the result of the rate / rate_white calculation
 ```
 
-Question 4) c. (i)
 1) Has the relative disparity of stop-and-search rates for people of Asian and Black ethnicity increased or decreased over the years?
-``` {r Question 4) d. (i)}
+``` {r Question 4) d. (i), warning=FALSE}
 stop_search_2 %>%
   filter(ethnicity != "Other" & ethnicity != "All" & ethnicity != "White") %>%
   # Filter out any ethnicity groups belonging to "Other", "All" and "White"
@@ -472,8 +470,7 @@ stop_search_2 %>%
 Between 2006 and 2020, the relative disparity has increased for both ethnic groups, meaning that there is a larger stop-and-search rate for people belonging to these categories in proportion to people belonging to the White ethnic group than in the past. As observed on the bar plote above, this trend peaked in 2017/18 for the Black ethnic category, and in 2010/11 for the Asian ethnic category.
 
 
-Question 4) c. (ii)
-2)In what geographical area of UK do the most stop-and-searches occur?
+2) In what geographical area of UK do the most stop-and-searches occur?
 
 ``` {r Question 4) d. (ii)}
 stop_search_2 %>%
@@ -515,10 +512,9 @@ stop_search_2 %>%
 Clearly, the area governed by the Metropolitan Police (i.e. Greater London region, excluding the City of London) is where most stop-and-searches occur in UK. This may be attributed to a higher population concentration, however, further analysis is required to establish that.
 
 
-Question 4) c. (iii)
-3)Are any of the ethnic categories related to stop-and-searches under one legal article section?
+3) Are any of the ethnic categories related to stop-and-searches under one legal article section?
 
-``` {r Question 4) d. (iii)}
+``` {r Question 4) d. (iii), warning=FALSE}
 stop_search_2 %>% filter(ethnicity != "All" & ethnicity != "Other") %>%
   # Filter out "All" and "Other" ethnicity groups
   ggplot(aes(x=legislation_type, y=stops, fill=ethnicity))+
